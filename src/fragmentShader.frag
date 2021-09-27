@@ -1,4 +1,8 @@
 varying vec2 vUv;
+
+uniform float time;
+uniform vec2 resolution;
+
 uniform float ufr;
 uniform float ufg;
 uniform float ufb;

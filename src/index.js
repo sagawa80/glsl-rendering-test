@@ -44,7 +44,7 @@ function glInit() {
 
   uniforms = {
     time: { type: 'f', value: 0.0 },
-    resolution: { type: 'v2', value: new THREE.Vector2() },
+    resolution: { type: 'v2', value: new THREE.Vector2(width, height) },
     ufr: { type: 'f', value: 0.0 },
     ufg: { type: 'f', value: 0.0 },
     ufb: { type: 'f', value: 1.0 },
@@ -72,6 +72,7 @@ function handleResize() {
   camera.aspect = width / height;
   camera.position.set(0, 0, dist);
   camera.updateProjectionMatrix();
+  uniforms.resolution.value = new THREE.Vector2(width, height);
   renderer.setSize(width, height);
 }
 
