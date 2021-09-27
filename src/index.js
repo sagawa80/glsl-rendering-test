@@ -43,6 +43,8 @@ function glInit() {
   renderer.setClearColor(0x000000, 1.0);
 
   uniforms = {
+    time: { type: 'f', value: 0.0 },
+    resolution: { type: 'v2', value: new THREE.Vector2() },
     ufr: { type: 'f', value: 0.0 },
     ufg: { type: 'f', value: 0.0 },
     ufb: { type: 'f', value: 1.0 },
@@ -75,5 +77,6 @@ function handleResize() {
 
 function tick() {
   renderer.render(scene, camera);
+  uniforms.time.value += 0.025;
   requestAnimationFrame(tick);
 }
