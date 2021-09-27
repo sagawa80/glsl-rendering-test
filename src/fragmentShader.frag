@@ -9,5 +9,8 @@ uniform float ufb;
 uniform float ufa;
 
 void main() {
-  gl_FragColor = vec4(ufr,ufg,ufb,ufa);
+  float r = abs(sin(time));
+  float g = abs(cos(time));
+  float b = (r + g) / 2.0;
+  gl_FragColor = vec4(r,g,b,ufa);
 }
