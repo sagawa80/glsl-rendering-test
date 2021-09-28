@@ -10,6 +10,6 @@ uniform float ufa;
 
 void main() {
   vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
-  float l = 0.1 / length(p);
+  float l = 0.1 * abs(sin(time)) / length(p);
   gl_FragColor = vec4(vec3(l),ufa);
 }
