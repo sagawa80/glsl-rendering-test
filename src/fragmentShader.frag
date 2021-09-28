@@ -9,8 +9,7 @@ uniform float ufb;
 uniform float ufa;
 
 void main() {
-  vec3 col = vec3(0.0);
   vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
-  col.r = (1.0 + p.x) * 0.5;
-  gl_FragColor = vec4(col,ufa);
+  float l = 0.1 / length(p);
+  gl_FragColor = vec4(vec3(l),ufa);
 }
