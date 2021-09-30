@@ -8,6 +8,14 @@ uniform float ufg;
 uniform float ufb;
 uniform float ufa;
 
+const float PI  = 3.14;
+const float PI2 = PI* 2.;
+
 void main() {
-  gl_FragColor = vec4(ufr,ufg,ufb,ufa);
+  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
+  float l=length(vec2(0,p.y*2.0+sin(p.x*PI2)));
+  l += 0.5;
+  vec3 c = vec3(smoothstep(0.5,0.51,l));
+  c += vec3(1.0,0.0,0.0);
+  gl_FragColor = vec4(c,ufa);
 }
