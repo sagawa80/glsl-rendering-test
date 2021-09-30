@@ -27,10 +27,15 @@ float lStarPolygon(vec2 p,int n,float o){
  return (lPolygon(p,n) - lPolygon(p * mRotate(PI2 / float(n) / 2.),n) * o) / (1.-o);
 }
 
+mat2 scale(vec2 _scale){
+  return mat2(_scale.x,0.0,
+              0.0,_scale.y);
+}
+
 void main() {
   vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
 
-  p = mRotate( sin(time)*PI ) * p;
+  p = scale(vec2(sin(time) + 1.0)) * p;
 
   float d = lStarPolygon(p,5,.6) * 5.0;
   vec3 c = vec3(smoothstep(0.5,0.51,d));
