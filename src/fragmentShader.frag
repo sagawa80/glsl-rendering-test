@@ -30,6 +30,9 @@ float lStarPolygon(vec2 p,int n,float o){
 void main() {
   vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
 
+  vec2 translate = vec2(cos(time),0.0);
+  p += translate;
+
   float d = lStarPolygon(p,5,.6) * 5.0;
   vec3 c = vec3(smoothstep(0.5,0.51,d));
 
