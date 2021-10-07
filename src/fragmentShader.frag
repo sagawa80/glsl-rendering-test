@@ -17,7 +17,7 @@ void main() {
   vec2 translate = vec2(time*0.5,0.0);
   p += translate;
 
-  float l=length(vec2(0,p.y*2.0+sin(p.x*PI2)));
+  float l=length(vec2(0,(p.y+sin(p.x*PI)+sin(p.x*PI2))*3.5));
   l += 0.5;
   vec3 c = vec3(smoothstep(0.5,0.52,l));
   c += vec3(0.0,1.0,0.0);
