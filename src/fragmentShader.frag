@@ -19,7 +19,15 @@ void main() {
 
   float l=length(vec2(0,p.y*2.0+sin(p.x*PI2)));
   l += 0.5;
-  vec3 c = vec3(smoothstep(0.5,0.51,l));
+  vec3 c = vec3(smoothstep(0.5,0.52,l));
   c += vec3(0.0,1.0,0.0);
-  gl_FragColor = vec4(c,ufa);
+
+  float cl=length(vec2(0,p.y*2.0+cos(p.x*PI2)));
+  cl += 0.5;
+  vec3 cc = vec3(smoothstep(0.5,0.52,cl));
+  cc += vec3(1.0,0.0,0.0);
+
+  vec3 pc = c * cc;
+
+  gl_FragColor = vec4(pc,ufa);
 }
