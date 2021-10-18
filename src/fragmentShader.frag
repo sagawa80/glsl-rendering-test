@@ -16,32 +16,29 @@ void main() {
 
   vec3 col = vec3(0.0);
 
-  float wave = 0.5 * sin(p.x - time * 4.5 + (1.0  * time * 0.6));
-  float colwave = 0.03 / abs(p.y + wave);
+  for(float i = 0.0; i < 12.0; i++) {
+    float wave = 0.5 * sin(p.x - time * 4.5 + (i  * time * 0.6));
+    float colwave = 0.03 / abs(p.y + wave);
 
-  vec3 color = vec3(1.0,0.0,0.0);
+    //rainbow
+    float rt = i * 1.0 + 4.4;
+    float r = (sin(rt) +1.0) * 0.5;
+    float g = (sin(rt - 2.0) + 1.0) * 0.5;
+    float b = (sin(rt - 4.0) + 1.0) * 0.5;
+    vec3 rainbow = vec3(r,g,b);
 
-  colwave = clamp(0.0,1.0, colwave);
+    float grad = (sin(i * 0.65 + 4.3) + 1.0) * 0.5;
 
-  col += vec3(colwave,colwave,colwave) * color;
+    colwave = clamp(0.0,1.0, colwave);
 
-  float wave2 = 0.5 * sin(p.x - time * 4.5 + (2.0  * time * 0.6));
-  float colwave2 = 0.03 / abs(p.y + wave2);
+    col += vec3(colwave,colwave,colwave) * grad * rainbow;
+  }
 
-  vec3 color2 = vec3(0.0,1.0,0.0);
-
-  colwave2 = clamp(0.0,1.0, colwave2);
-
-  col += vec3(colwave2,colwave2,colwave2) * color2;
-
-  float wave3 = 0.5 * sin(p.x - time * 4.5 + (3.0  * time * 0.6));
-  float colwave3 = 0.03 / abs(p.y + wave3);
-
-  vec3 color3 = vec3(0.0,0.0,1.0);
-
-  colwave3 = clamp(0.0,1.0, colwave3);
-
-  col += vec3(colwave3,colwave3,colwave3) * color3;
+  //ガンマ補正
+  float m = 1.0;
+  col.x = pow(col.x, m);
+  col.y = pow(col.y, m);
+  col.z = pow(col.z, m);
 
   gl_FragColor = vec4(col, 1.0);
 
