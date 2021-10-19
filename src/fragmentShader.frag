@@ -11,7 +11,7 @@ uniform float ufa;
 void main() {
   vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);//正規化
 
-  float cx = step(0.0, sin(p.x * 20.0));
+  float cx = step(0.0, sin((p.x + time * 0.1) * 20.0));
   float cy = step(0.0, sin(p.y * 20.0));
   float c = 0.0;
   if ((cx + cy) != 1.0) {
