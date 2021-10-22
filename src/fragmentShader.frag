@@ -10,9 +10,11 @@ uniform float ufa;
 
 // 球の距離函数
 float sphere_d(vec3 p) {
-  const vec3 sphere_pos = vec3(0.0, 0.0, 3.0);
+  //const vec3 sphere_pos = vec3(0.0, 0.0, 3.0);
+  //const float r = 1.0;
+  //return length(p - sphere_pos) - r;
   const float r = 1.0;
-  return length(p - sphere_pos) - r;
+	return length(mod(p, 4.0) - 2.0) - r;
 }
 
 vec3 sphere_normal(vec3 pos) {
