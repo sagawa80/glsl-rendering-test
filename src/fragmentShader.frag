@@ -15,6 +15,15 @@ float sphere_d(vec3 p) {
   return length(p - sphere_pos) - r;
 }
 
+vec3 sphere_normal(vec3 pos) {
+  float delta = 0.001;
+  return normalize(vec3(
+    sphere_d(pos - vec3(delta, 0.0, 0.0)) - sphere_d(pos),
+    sphere_d(pos - vec3(0.0, delta, 0.0)) - sphere_d(pos),
+    sphere_d(pos - vec3(0.0, 0.0, delta)) - sphere_d(pos)
+  ));
+}
+
 struct Ray {
   vec3 pos;
   vec3 dir;
@@ -51,9 +60,14 @@ void main() {
     ray.pos = camera_pos + t * ray.dir;
   }
 
+  vec3 L = normalize(vec3(0.0, 0.0, 1.0)); // 光源ベクトル
+	vec3 N = sphere_normal(ray.pos); // 法線ベクトル
+	vec3 LColor = vec3(1.0, 1.0, 1.0); // 光の色
+	vec3 I = dot(N, L) * LColor; // 輝度
+
   if (d < 0.001) {
     // ヒットしていれば白
-    gl_FragColor = vec4(1);
+    gl_FragColor = vec4(I, 1.0);
   } else {
     gl_FragColor = vec4(0);
   }
