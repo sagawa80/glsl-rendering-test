@@ -8,138 +8,192 @@ uniform float ufg;
 uniform float ufb;
 uniform float ufa;
 
-struct Ray {
-  vec3 pos;
-  vec3 dir;
-};
+// webgl-noise
+// Description : Array and textureless GLSL 2D/3D/4D simplex noise functions.
+//      Author : Ian McEwan,Ashima Arts.
+//  Maintainer : stegu
+//     Lastmod : 20201014(stegu)
+//     License : Copyright(C)2011 Ashima Arts.All rights reserved.
+//               Distributed under the MIT License.See LICENSE file.
+//               https://github.com/ashima/webgl-noise
+//               https://github.com/stegu/webgl-noise
 
-// Some useful functions
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x){ return mod289(((x*34.0)+1.0)*x); }
+vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
 
-//
-// Description : GLSL 2D simplex noise function
-//      Author : Ian McEwan, Ashima Arts
-//  Maintainer : ijm
-//     Lastmod : 20110822 (ijm)
-//     License :
-//  Copyright (C) 2011 Ashima Arts. All rights reserved.
-//  Distributed under the MIT License. See LICENSE file.
-//  https://github.com/ashima/webgl-noise
-//
-float snoise(vec2 v) {
-
-    // Precompute values for skewed triangular grid
-    const vec4 C = vec4(0.211324865405187,
-                        // (3.0-sqrt(3.0))/6.0
-                        0.366025403784439,
-                        // 0.5*(sqrt(3.0)-1.0)
-                        -0.577350269189626,
-                        // -1.0 + 2.0 * C.x
-                        0.024390243902439);
-                        // 1.0 / 41.0
-
-    // First corner (x0)
-    vec2 i  = floor(v + dot(v, C.yy));
-    vec2 x0 = v - i + dot(i, C.xx);
-
-    // Other two corners (x1, x2)
-    vec2 i1 = vec2(0.0);
-    i1 = (x0.x > x0.y)? vec2(1.0, 0.0):vec2(0.0, 1.0);
-    vec2 x1 = x0.xy + C.xx - i1;
-    vec2 x2 = x0.xy + C.zz;
-
-    // Do some permutations to avoid
-    // truncation effects in permutation
-    i = mod289(i);
-    vec3 p = permute(
-            permute( i.y + vec3(0.0, i1.y, 1.0))
-                + i.x + vec3(0.0, i1.x, 1.0 ));
-
-    vec3 m = max(0.5 - vec3(
-                        dot(x0,x0),
-                        dot(x1,x1),
-                        dot(x2,x2)
-                        ), 0.0);
-
-    m = m*m ;
-    m = m*m ;
-
-    // Gradients:
-    //  41 pts uniformly over a line, mapped onto a diamond
-    //  The ring size 17*17 = 289 is close to a multiple
-    //      of 41 (41*7 = 287)
-
-    vec3 x = 2.0 * fract(p * C.www) - 1.0;
-    vec3 h = abs(x) - 0.5;
-    vec3 ox = floor(x + 0.5);
-    vec3 a0 = x - ox;
-
-    // Normalise gradients implicitly by scaling m
-    // Approximation of: m *= inversesqrt(a0*a0 + h*h);
-    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0+h*h);
-
-    // Compute final noise value at P
-    vec3 g = vec3(0.0);
-    g.x  = a0.x  * x0.x  + h.x  * x0.y;
-    g.yz = a0.yz * vec2(x1.x,x2.x) + h.yz * vec2(x1.y,x2.y);
-    return 130.0 * dot(m, g);
+float snoise(vec3 v){
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i  = floor(v + dot(v, C.yyy) );
+  vec3 x0 = v - i + dot(i, C.xxx) ;
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min( g.xyz, l.zxy );
+  vec3 i2 = max( g.xyz, l.zxy );
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(
+            i.z + vec4(0.0, i1.z, i2.z, 1.0))
+          + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+          + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+  vec3 p0 = vec3(a0.xy,h.x);
+  vec3 p1 = vec3(a0.zw,h.y);
+  vec3 p2 = vec3(a1.xy,h.z);
+  vec3 p3 = vec3(a1.zw,h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2, p2),dot(p3,p3)));
+  p0 *= norm.x;
+  p1 *= norm.y;
+  p2 *= norm.z;
+  p3 *= norm.w;
+  vec4 m = max(0.5 - vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);
+  m = m * m;
+  return 105.0 * dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));
 }
 
-float map(vec3 v) {
-  // 地面のオフセット
-  const float GROUND_BASE = 1.2;
-  return v.y - snoise(v.xz * .4) + GROUND_BASE;
+//HSVカラー生成
+vec3 hsv(float h,float s,float v){
+  vec4 t = vec4(1.0,2.0/3.0,1.0/3.0,3.0);
+  vec3 p = abs(fract(vec3(h) + t.xyz) * 6.0 - vec3(t.w));
+  return v * mix(vec3(t.x),clamp(p - vec3(t.x),0.0,1.0),s);
 }
 
-vec3 map_normal(vec3 v) {
-  float delta = 0.01;
-  return normalize(vec3(map(v + vec3(delta, 0.0, 0.0)) - map(v),
-    map(v + vec3(0.0, delta, 0.0)) - map(v),
-    map(v + vec3(0.0, 0.0, delta)) - map(v)));
+//行列による回転
+vec3 rotate(vec3 p,float radX,float radY,float radZ){
+  mat3 mx = mat3(
+    1.0,0.0,0.0,
+    0.0,cos(radX),-sin(radX),
+    0.0,sin(radX),cos(radX)
+  );
+  mat3 my = mat3(
+    cos(radY),0.0,sin(radY),
+    0.0,1.0,0.0,
+    -sin(radY),0.0,cos(radY)
+  );
+  mat3 mz = mat3(
+    cos(radZ),-sin(radZ),0.0,
+    sin(radZ),cos(radZ),0.0,
+    0.0,0.0,1.0
+  );
+  return mx * my * mz * p;
 }
 
-void main() {
-  //正規化
-  vec2 pos = (gl_FragCoord.xy * 2.0 - resolution) / max(resolution.x, resolution.y);
+//球形に座標アニメーション
+vec3 sphericalPolarCoord(float radius, float rad1, float rad2){
+  return vec3(
+    sin(rad1) * cos(rad2) * radius,
+    sin(rad1) * sin(rad2) * radius,
+    cos(rad1) * radius
+  );
+}
 
-  // カメラの位置。中心から後方にあるイメージ
-  vec3 camera_pos = vec3(time, 0.0, -4.0 + time);
-  // カメラの上方向の姿勢を定めるベクトル　この場合水平
-  vec3 camera_up = normalize(vec3(0.0, 1.0, 0.0));
-  //  カメラの向いている方向　
-  vec3 camera_dir = normalize(vec3(0.0, 0.0, 1.0));
-  // camera_upとcamera_dirの外積から定まるカメラの横方向のベクトル
-  vec3 camera_side = normalize(cross(camera_up, camera_dir));
+//スムーズに結合するための補間
+float smoothMin(float d1, float d2, float k){
+  float h = exp(-k * d1) + exp(-k * d2);
+  return -log(h) / k;
+}
 
-  // レイの位置、飛ぶ方向を定義する
-  Ray ray;
-  ray.pos = camera_pos;
-  ray.dir = normalize(pos.x * camera_side + pos.y * camera_up + camera_dir);
+//球体の距離関数
+float distanceFuncSphere(vec3 p,float r){
+  return length(p) - r;
+}
 
-  float t = 0.0, d;
-  // レイを飛ばす (計算回数は最大64回まで)
-  for (int i = 0; i < 128; i++) {
-    d = map(ray.pos);
-    // ヒットした
-    if (d < 0.001) {
-      break;
-    }
-    // 次のレイは最小距離d * ray.dirの分だけ進める（効率化）
-    t += d;
-    ray.pos = camera_pos + t * ray.dir;
+//距離関数
+float distanceFunc(vec3 p){
+  float n1 = snoise(p * 0.3 + time / 100.0);
+  vec3 p1 = rotate(p,radians(time),radians(time),radians(time));
+  vec3 s1 = sphericalPolarCoord(3.0,radians(time),radians(-time * 2.0));
+  float d1 = distanceFuncSphere(p1+s1,1.25) - n1 * 0.25;
+
+  vec3 p2 = rotate(p,radians(time),radians(time),radians(time));
+  vec3 s2 = sphericalPolarCoord(3.0,radians(-time * 5.0),radians(-time));
+  float d2 = distanceFuncSphere(p2+s2,1.25) - n1 * 0.25;
+
+  vec3 p3 = rotate(p,radians(time),radians(time),radians(time));
+  vec3 s3 = sphericalPolarCoord(3.0,radians(time),radians(-time * 5.0));
+  float d3 = distanceFuncSphere(p3+s3,1.25) - n1 * 0.25;
+
+  return smoothMin(smoothMin(d1,d2,2.0),d3,2.0);
+}
+
+//法線を計算
+vec3 getNormal(vec3 p){
+  float d = 0.001;
+  return normalize(vec3(
+    distanceFunc(p + vec3(d,0.0,0.0)) - distanceFunc(p + vec3(-d,0.0,0.0)),
+    distanceFunc(p + vec3(0.0,d,0.0)) - distanceFunc(p + vec3(0.0,-d,0.0)),
+    distanceFunc(p + vec3(0.0,0.0,d)) - distanceFunc(p + vec3(0.0,0.0,-d))
+  ));
+}
+
+void main(void){
+
+  //フラグメント座標の正規化
+  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x,resolution.y);
+
+  //カメラの位置
+  vec3 cPos = vec3(0.0,0.0,10.0);
+
+  //カメラの向き
+  vec3 cDir = vec3(0.0,0.0,-1.0);
+
+  //カメラの上方向
+  vec3 cUp = vec3(0.0,1.0,0.0);
+
+  //カメラの横方向
+  vec3 cSide = cross(cDir,cUp);
+
+  //フォーカスする深度
+  float targetDepth = 1.8;
+
+  //レイ（光線）
+  vec3 ray = normalize(cSide * p.x + cUp * p.y + cDir * targetDepth);
+
+  //マーチングループ
+  float distance = 0.0;
+  float rLen = 0.0;
+  vec3 rPos = cPos;
+  for(int i = 0; i < 64; i++){
+    distance = distanceFunc(rPos);
+    rLen += distance;
+    rPos = cPos + ray * rLen * 0.2;
   }
 
-  vec3 L = normalize(vec3(0.0, 1.0, 0.0)); // 光源ベクトル
-  vec3 N = map_normal(ray.pos); // 法線ベクトル
-  vec3 LColor = vec3(1.0, 1.0, 1.0); // 光の色
-  vec3 I = dot(N, L) * LColor; // 輝度
+  //法線の取得
+  vec3 normal = getNormal(rPos);
 
-  if (d < 0.001) {
-    // ヒットしていれば白
-    gl_FragColor = vec4(I, 1.0);
-  } else {
-  gl_FragColor = vec4(0);
+  //メタボールアニメーション
+  if(abs(distance) < 1.0){
+    float n = snoise(rPos * 0.2 + time / 100.0);
+    vec3 p = rotate(rPos,radians(time * -2.0),radians(time * 2.0),radians(time * -2.0));
+    float d = distanceFuncSphere(p,1.6) - n;
+
+    if(d > 2.0){
+        gl_FragColor = vec4(hsv(dot(normal,cUp) * 0.8 + time / 200.0,0.2,dot(normal,cUp) * 0.6 + 0.6),1.0);
+    }else if(d < 2.0 && d > 1.0){
+        gl_FragColor = vec4(hsv(dot(normal,cUp) * 0.1 + time / 100.0,0.8,dot(normal,cUp) * 0.3 + 0.8),1.0);
+    }else{
+        gl_FragColor = vec4(hsv(dot(normal,cUp) * 0.8 + time / 200.0,0.2,dot(normal,cUp) * 0.6 + 0.5),1.0);
+    }
+  }else{
+    gl_FragColor = vec4(vec3(0.0),1.0);
   }
 }

@@ -78,6 +78,6 @@ function handleResize() {
 
 function tick() {
   renderer.render(scene, camera);
-  uniforms.time.value += 0.025;
+  uniforms.time.value += 1.0;
   requestAnimationFrame(tick);
 }
